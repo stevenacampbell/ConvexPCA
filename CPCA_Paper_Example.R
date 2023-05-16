@@ -17,17 +17,12 @@ library(matlib)
 #Reset Environment
 rm(list=ls())
 
-#Problem Setup
+################################################
+################ CPCA FUNCTIONS ################
+################################################
 
-# Let d be the dimension of the original problem in R^d.
-# After the first j principle components found we find a matrix B of orthogonal basis vectors with dimension d x (d-j)
-# We introduce a new vector theta for this problem of dimension (d-j-1) 
-# This corresponds to a vector p(theta) of dimension (d-j) which is multiplied with B to get the input for our problem
-# The new vector Bp(theta) is a linear combination of the orthogonal basis vectors and will be orthogonal to the earlier PCs
-# The problem then will return a new minimum in terms of theta* from which we can recover the new PC Bp(theta*)
-# We repeat this process where of course the first principle component is found by setting B=Id
-# We can find candidate solutions near the local minimum by using the usual PCA solution p_ for the projected data (see notes).
-# In order to get our initial theta0 from this we must solve p_=Bp(theta) for theta
+#Import CPCA Cpp Functions
+sourceCpp("ParCPCATest.cpp")
 
 #Least Squares Fit to solve for solution to system Bp=p_
 LSFit<-function(B,b){
@@ -77,16 +72,6 @@ InitialP<-function(B,p){
   P<-LSFit(B,p)
   return(P)
 }
-
-
-################################################
-################ CPCA FUNCTIONS ################
-################################################
-
-#Import CPCA Cpp Functions
-setwd("~/CapitalDistributionProject")
-sourceCpp("ParCPCATest.cpp")
-
 
 #ILR TRANSFORM
 ILR <-function(p){
