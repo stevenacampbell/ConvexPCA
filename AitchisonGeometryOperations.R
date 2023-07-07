@@ -62,16 +62,3 @@ constraint_matrix_ordered_simplex<-function(n){
   
   return(as.matrix(A))
 }
-
-
-#a<-c(0.2,0.7,0.1)
-#ilr(a)
-#ilr_inv(ilr(a))
-
-#err<-rep(0,1000)
-#for(i in seq(1,1000,1)){
-#  x<-runif(10)
-#  y<-ilr_inv(x)
-#  err[i]<-sum(abs(x-ilr(y)))+sum(abs((ilr_inv(ilr(y))-y)))
-#}
-#plot(err)
