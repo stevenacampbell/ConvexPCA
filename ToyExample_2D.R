@@ -2,6 +2,7 @@
 rm(list=ls())
 
 # Import source files
+library(Rcpp)
 sourceCpp("HelperFunctions.cpp")
 source("CPCAFunctions.R")
 
