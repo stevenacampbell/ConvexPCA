@@ -1,4 +1,4 @@
-# Code supplement for ``Convex PCA with applications to Wasserstein geodesic PCA and ranked data"
+# Code supplement for "Convex PCA with applications to Wasserstein geodesic PCA and ranked data"
 
 This repository contains sample code for an implementation of Convex PCA as seen in [Campbell & Wong (2022)]. Sample applications to capital distribution curves and return distributions by rank arising from the (generalized) Atlas model of equity markets (see e.g. [Banner, Fernholz, and Karatzas (2005)]) are provided for illustration purposes. Code reproducing the simple 2d example from Figure 1 in [Campbell & Wong (2022)] is also included. All code required to reproduce the numerical experiments of Appendix B.4 in [Campbell & Wong (2022)] is provided. These experiments compare the present methodology with the approaches of [Cazelles et al. (2018)] and [Pegoraro and Beraha (2022)] for GPCA and the dimensionality reduction of distributional data. A more detailed breakdown of the files and their contents is included here:
 
