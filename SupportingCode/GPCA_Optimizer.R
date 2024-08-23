@@ -1,0 +1,85 @@
+library(Rcpp)
+library(RcppParallel)
+library(nloptr)
+library(pracma)
+
+# Import rcpp helper functions
+sourceCpp("SupportingCode/HelperFunctions_GPCA.cpp")
+
+# Create functions of theta for optimization that incorporate 
+# the defining input parameters (e.g. the data matrix X).
+
+eval_GPCA_obj_closure <- function(theta,B,x0,A_main,A_lower,b,X) {
+  function(theta) eval_GPCA_obj_sph(theta,B,x0,A_main,A_lower,b,X)
+}
+
+eval_grad_GPCA_obj_parallel_closure <- function(theta,B,h,x0,A_main,A_lower,b,X,nthreads) {
+  function(theta) eval_grad_GPCA_obj_sph_parallel(theta,B,h,x0,A_main,A_lower,b,X,nthreads)
+}
+
+GPCA<-function(npcs,X,x0,A_main,A_lower,b,h,nthreads){
+  # Computes the Geodesic Principal Components
+  
+  # npcs number of principal components requested
+  # X data matrix
+  # x0 reference element
+  # A_main main diagonal for GPCA constraint matrix
+  # A_lower lower diagonal for GPCA constraint matrix
+  # b constraint vector
+  # h central difference step size
+  # nthreads number of threads requested
+  
+  # Extract Dimension
+  d<-nrow(X)
+  
+  # Allocate Matrix
+  PCs<-matrix(0,ncol=npcs,nrow=d)
+  
+  # Optimization specifications
+  opts <- list("algorithm"="NLOPT_LD_LBFGS","xtol_rel"=1.0e-10)
+  
+  for(i in seq(1,npcs,1)){
+    status <- paste0("Preparing Data for PC ", i, " ...")
+    print(status)
+    
+    # Get principle component estimate, projected data, and Basis Matrix
+    if(i>1){
+      X1<-project_orthogonal_complement(X-x0,as.matrix(PCs[,1:(i-1)]))
+      B<-null_space_via_svd(t(PCs[,1:(i-1)]))
+      pca <- prcomp(t(X1),center=FALSE,scale=FALSE)
+      p<-pca$rotation[,1]
+      p0<-ls_fit(B,p)
+    }else{
+      B<-eye(d)
+      pca <- prcomp(t(X-x0),center=FALSE,scale=FALSE)
+      p<-pca$rotation[,1]
+      p0<-p
+    }
+    
+    # Get implied theta
+    theta0 <- as.vector(spherical_coords(p0))
+    
+    # Get functions for optimization routine
+    eval_f<-eval_GPCA_obj_closure(theta,B,x0,A_main,A_lower,b,X)
+    eval_grad_f <- eval_grad_GPCA_obj_parallel_closure(theta,B,h,x0,A_main,A_lower,b,X,nthreads)
+    
+    status <- paste0("Optimization Running for PC ", i, " ...")
+    print(status)
+    
+    # Run optimization
+    res <- nloptr(
+      x0          = theta0,
+      eval_f      = eval_f,
+      eval_grad_f = eval_grad_f,
+      opts        = opts
+    )
+    theta_sol<-res$solution
+    status <- paste0("Optimization for PC ", i, " Complete.")
+    print(status)
+    
+    # Store solution
+    PCs[,i]<-matrix_vector_multiply(B,undo_spherical_coords(theta_sol))
+  }
+  
+  return(PCs)
+}
